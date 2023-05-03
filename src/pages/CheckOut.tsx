@@ -28,7 +28,7 @@ const CheckOut: React.FC = () => {
         </IonHeader>
         <div className="center">
           <IonImg
-            src="../../resources/Qr_CheckOut_Test.png"
+            src="../../public/Qr_CheckOut_Test.png"
             className="img"
           ></IonImg>
         </div>
