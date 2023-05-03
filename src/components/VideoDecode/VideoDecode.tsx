@@ -15,6 +15,8 @@ let products: any = {
   "e1a0a5c5-5d5f-4f62-9df3-f4c9ac73f4d7": "Cheese",
 };
 
+let shopingList: string[] = ["c7d2f212-21f4-4e88-96d6-8eddf213ed10"];
+
 let overlay: HTMLCanvasElement | null = null;
 let context: CanvasRenderingContext2D | null = null;
 
@@ -50,10 +52,12 @@ function drawOverlay(
     x4: number;
     y4: number;
   },
-  text: string
+  text: string,
+  correct: boolean
 ): void {
   if (context) {
     context.beginPath();
+    context.strokeStyle = correct ? "#00FF00" : "#ff0000";
     context.moveTo(localization.x1, localization.y1);
     context.lineTo(localization.x2, localization.y2);
     context.lineTo(localization.x3, localization.y3);
@@ -62,7 +66,7 @@ function drawOverlay(
     context.stroke();
 
     context.font = "18px Verdana";
-    context.fillStyle = "#ff0000";
+    context.fillStyle = correct ? "#00FF00" : "#ff0000";
     let x: number[] = [
       localization.x1,
       localization.x2,
@@ -84,7 +88,7 @@ function drawOverlay(
     let left = x[0];
     let top = y[0];
 
-    context.fillText(text, left, top + 50);
+    context.fillText(text, left, top + 25);
   }
 }
 
@@ -109,9 +113,14 @@ class VideoDecode extends React.Component {
         clearOverlay();
         let txts = [];
         for (let result of results) {
-          console.log(result);
+          // console.log(result);
           txts.push(result.barcodeText);
-          drawOverlay(result.localizationResult, products[result.barcodeText]);
+          console.log(result);
+          drawOverlay(
+            result.localizationResult,
+            products[result.barcodeText],
+            shopingList.includes(result.barcodeText)
+          );
         }
       };
       await scanner.open();
