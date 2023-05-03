@@ -35,7 +35,7 @@ function updateOverlay(width: number, height: number): void {
 
 function clearOverlay(width: number, height: number): void {
   if (context) {
-    context.clearRect(0, 0, width, height);
+    context.clearRect(0, 0, 1000, 1000);
     context.strokeStyle = "#ff0000";
     context.lineWidth = 5;
   }
@@ -88,7 +88,7 @@ function drawOverlay(
     let left = x[0];
     let top = y[0];
 
-    context.fillText(text, left, top + 50);
+    context.fillText(text, left, top + 25);
   }
 }
 
@@ -99,7 +99,6 @@ class VideoDecode extends React.Component {
     try {
       const scanner = await (this.pScanner = BarcodeScanner.createInstance());
       const canvas = document.getElementById("overlay") as HTMLCanvasElement;
-
       initOverlay(canvas);
       // Should judge if scanner is destroyed after 'await', as in development React runs setup and cleanup one extra time before the actual setup in Strict Mode.
       if (scanner.isContextDestroyed()) return;
@@ -147,7 +146,7 @@ class VideoDecode extends React.Component {
   }
   render() {
     return (
-      <div className="component-barcode-scanner" ref={this.elRef}>
+      <div ref={this.elRef} className="component-barcode-scanner">
         <svg className="dce-bg-loading" viewBox="0 0 1792 1792">
           <path d="M1760 896q0 176-68.5 336t-184 275.5-275.5 184-336 68.5-336-68.5-275.5-184-184-275.5-68.5-336q0-213 97-398.5t265-305.5 374-151v228q-221 45-366.5 221t-145.5 406q0 130 51 248.5t136.5 204 204 136.5 248.5 51 248.5-51 204-136.5 136.5-204 51-248.5q0-230-145.5-406t-366.5-221v-228q206 31 374 151t265 305.5 97 398.5z"></path>
         </svg>
