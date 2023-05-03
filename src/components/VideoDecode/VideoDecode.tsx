@@ -15,15 +15,15 @@ let products: any = {
   "e1a0a5c5-5d5f-4f62-9df3-f4c9ac73f4d7": "Cheese",
 };
 
-var overlay: any = null;
-var context: any = null;
+let overlay: HTMLCanvasElement | null = null;
+let context: CanvasRenderingContext2D | null = null;
 
-function initOverlay(ol: any) {
+function initOverlay(ol: HTMLCanvasElement): void {
   overlay = ol;
   context = overlay.getContext("2d");
 }
 
-function updateOverlay(width: any, height: any) {
+function updateOverlay(width: number, height: number): void {
   if (overlay) {
     overlay.width = width;
     overlay.height = height;
@@ -31,15 +31,27 @@ function updateOverlay(width: any, height: any) {
   }
 }
 
-function clearOverlay() {
+function clearOverlay(): void {
   if (context) {
-    context.clearRect(0, 0, overlay.width, overlay.height);
+    context.clearRect(0, 0, 10000, 10000);
     context.strokeStyle = "#ff0000";
     context.lineWidth = 5;
   }
 }
 
-function drawOverlay(localization: any, text: any) {
+function drawOverlay(
+  localization: {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    x3: number;
+    y3: number;
+    x4: number;
+    y4: number;
+  },
+  text: string
+): void {
   if (context) {
     context.beginPath();
     context.moveTo(localization.x1, localization.y1);
@@ -51,22 +63,22 @@ function drawOverlay(localization: any, text: any) {
 
     context.font = "18px Verdana";
     context.fillStyle = "#ff0000";
-    let x = [
+    let x: number[] = [
       localization.x1,
       localization.x2,
       localization.x3,
       localization.x4,
     ];
-    let y = [
+    let y: number[] = [
       localization.y1,
       localization.y2,
       localization.y3,
       localization.y4,
     ];
-    x.sort(function (a, b) {
+    x.sort(function (a: number, b: number): number {
       return a - b;
     });
-    y.sort(function (a, b) {
+    y.sort(function (a: number, b: number): number {
       return b - a;
     });
     let left = x[0];
@@ -75,31 +87,31 @@ function drawOverlay(localization: any, text: any) {
     context.fillText(text, left, top + 50);
   }
 }
+
 class VideoDecode extends React.Component {
   pScanner: Promise<BarcodeScanner> | null = null;
   elRef: React.RefObject<HTMLDivElement> = React.createRef();
   async componentDidMount() {
     try {
       const scanner = await (this.pScanner = BarcodeScanner.createInstance());
-      scanner.barcodeFillStyle = "transparent";
-      scanner.barcodeStrokeStyle = "transparent";
-      scanner.barcodeFillStyleBeforeVerification = "transparent";
-      scanner.barcodeStrokeStyleBeforeVerification = "transparent";
+      const canvas = document.getElementById("overlay") as HTMLCanvasElement;
+      initOverlay(canvas);
       // Should judge if scanner is destroyed after 'await', as in development React runs setup and cleanup one extra time before the actual setup in Strict Mode.
       if (scanner.isContextDestroyed()) return;
       await scanner.setUIElement(this.elRef.current!);
       // Should judge if scanner is destroyed after 'await', as in development React runs setup and cleanup one extra time before the actual setup in Strict Mode.
       if (scanner.isContextDestroyed()) return;
 
+      let resolution = scanner.getResolution();
+      updateOverlay(resolution[0], resolution[1]);
+
       scanner.onFrameRead = (results) => {
         clearOverlay();
         let txts = [];
-
         for (let result of results) {
-          console.log(result.barcodeText);
-          console.log(result.localizationResult);
+          console.log(result);
           txts.push(result.barcodeText);
-          drawOverlay(result.localizationResult, result.barcodeText);
+          drawOverlay(result.localizationResult, products[result.barcodeText]);
         }
       };
       await scanner.open();
@@ -132,10 +144,11 @@ class VideoDecode extends React.Component {
         <svg className="dce-bg-camera" viewBox="0 0 2048 1792">
           <path d="M1024 672q119 0 203.5 84.5t84.5 203.5-84.5 203.5-203.5 84.5-203.5-84.5-84.5-203.5 84.5-203.5 203.5-84.5zm704-416q106 0 181 75t75 181v896q0 106-75 181t-181 75h-1408q-106 0-181-75t-75-181v-896q0-106 75-181t181-75h224l51-136q19-49 69.5-84.5t103.5-35.5h512q53 0 103.5 35.5t69.5 84.5l51 136h224zm-704 1152q185 0 316.5-131.5t131.5-316.5-131.5-316.5-316.5-131.5-316.5 131.5-131.5 316.5 131.5 316.5 316.5 131.5z"></path>
         </svg>
-        <div className="dce-video-container"></div>
-        <div className="dce-scanarea">
-          <div className="dce-scanlight"></div>
+        <div id="videoview">
+          <div className="dce-video-container" id="videoContainer"></div>
+          <canvas id="overlay"></canvas>
         </div>
+
         <div className="div-select-container">
           <select className="dce-sel-camera"></select>
           <select className="dce-sel-resolution"></select>
