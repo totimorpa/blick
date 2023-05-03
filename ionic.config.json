@@ -1,0 +1,7 @@
+{
+  "name": "blickapp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
