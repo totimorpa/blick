@@ -2,21 +2,6 @@ import { BarcodeScanner } from "dynamsoft-javascript-barcode";
 import React from "react";
 import "./VideoDecode.css";
 
-let products: any = {
-  "1ec74e6f-7b86-4b85-9ebe-18a3a7d0a17b": "Apples",
-  "6ca34ed6-2d60-4326-bdf3-c3a22d7c3b15": "Bananas",
-  "03de298c-e4d5-4b39-847b-b317337055ef": "Carrots",
-  "90f7de86-7468-4f28-aef4-902726b33c35": "Broccoli",
-  "a46e9a48-2001-4d70-b55e-d1a5735c5d5d": "Chicken",
-  "3c3b1b43-8d99-4883-ae20-b51af8e8b0c1": "Beef",
-  "fced11a8-a9b6-4fd4-8db6-8815ee0a279b": "Milk",
-  "8e35f7c9-38f4-4af1-bfc5-ee7d25df46e2": "Eggs",
-  "c7d2f212-21f4-4e88-96d6-8eddf213ed10": "Bread",
-  "e1a0a5c5-5d5f-4f62-9df3-f4c9ac73f4d7": "Cheese",
-};
-
-let shopingList: string[] = ["c7d2f212-21f4-4e88-96d6-8eddf213ed10"];
-
 let overlay: HTMLCanvasElement | null = null;
 let context: CanvasRenderingContext2D | null = null;
 
@@ -29,13 +14,13 @@ function updateOverlay(width: number, height: number): void {
   if (overlay) {
     overlay.width = width;
     overlay.height = height;
-    clearOverlay(width, height);
+    clearOverlay();
   }
 }
 
-function clearOverlay(width: number, height: number): void {
+function clearOverlay(): void {
   if (context) {
-    context.clearRect(0, 0, width, height);
+    context.clearRect(0, 0, 10000, 10000);
     context.strokeStyle = "#ff0000";
     context.lineWidth = 5;
   }
@@ -52,12 +37,10 @@ function drawOverlay(
     x4: number;
     y4: number;
   },
-  text: string,
-  correct: boolean
+  text: string
 ): void {
   if (context) {
     context.beginPath();
-    context.strokeStyle = correct ? "#00FF00" : "#ff0000";
     context.moveTo(localization.x1, localization.y1);
     context.lineTo(localization.x2, localization.y2);
     context.lineTo(localization.x3, localization.y3);
@@ -66,7 +49,7 @@ function drawOverlay(
     context.stroke();
 
     context.font = "18px Verdana";
-    context.fillStyle = correct ? "#00FF00" : "#ff0000";
+    context.fillStyle = "#ff0000";
     let x: number[] = [
       localization.x1,
       localization.x2,
@@ -87,7 +70,6 @@ function drawOverlay(
     });
     let left = x[0];
     let top = y[0];
-
     context.fillText(text, left, top + 50);
   }
 }
@@ -97,33 +79,19 @@ class VideoDecode extends React.Component {
   elRef: React.RefObject<HTMLDivElement> = React.createRef();
   async componentDidMount() {
     try {
+      await BarcodeScanner.loadWasm();
       const scanner = await (this.pScanner = BarcodeScanner.createInstance());
-      const canvas = document.getElementById("overlay") as HTMLCanvasElement;
-
-      initOverlay(canvas);
       // Should judge if scanner is destroyed after 'await', as in development React runs setup and cleanup one extra time before the actual setup in Strict Mode.
       if (scanner.isContextDestroyed()) return;
       await scanner.setUIElement(this.elRef.current!);
       // Should judge if scanner is destroyed after 'await', as in development React runs setup and cleanup one extra time before the actual setup in Strict Mode.
       if (scanner.isContextDestroyed()) return;
-
-      let resolution = scanner.getResolution();
-      updateOverlay(resolution[0], resolution[1]);
-
       scanner.onFrameRead = (results) => {
-        clearOverlay(resolution[0], resolution[1]);
-        let txts = [];
         for (let result of results) {
-          // console.log(result);
-          txts.push(result.barcodeText);
-          console.log(result);
-          drawOverlay(
-            result.localizationResult,
-            products[result.barcodeText],
-            shopingList.includes(result.barcodeText)
-          );
+          console.log(result.barcodeText);
         }
       };
+
       await scanner.open();
     } catch (ex: any) {
       if (ex.message.indexOf("network connection error")) {
@@ -147,7 +115,7 @@ class VideoDecode extends React.Component {
   }
   render() {
     return (
-      <div className="component-barcode-scanner" ref={this.elRef}>
+      <div ref={this.elRef} className="component-barcode-scanner">
         <svg className="dce-bg-loading" viewBox="0 0 1792 1792">
           <path d="M1760 896q0 176-68.5 336t-184 275.5-275.5 184-336 68.5-336-68.5-275.5-184-184-275.5-68.5-336q0-213 97-398.5t265-305.5 374-151v228q-221 45-366.5 221t-145.5 406q0 130 51 248.5t136.5 204 204 136.5 248.5 51 248.5-51 204-136.5 136.5-204 51-248.5q0-230-145.5-406t-366.5-221v-228q206 31 374 151t265 305.5 97 398.5z"></path>
         </svg>
@@ -158,7 +126,7 @@ class VideoDecode extends React.Component {
           <div className="dce-video-container" id="videoContainer"></div>
           <canvas id="overlay"></canvas>
         </div>
-
+        <div className="dce-scanarea"></div>
         <div className="div-select-container">
           <select className="dce-sel-camera"></select>
           <select className="dce-sel-resolution"></select>
