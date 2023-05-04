@@ -97,6 +97,7 @@ class VideoDecode extends React.Component {
     try {
       await BarcodeScanner.loadWasm();
       const scanner = await (this.pScanner = BarcodeScanner.createInstance());
+      await scanner.updateRuntimeSettings("speed");
       const canvas = document.getElementById("overlay") as HTMLCanvasElement;
       initOverlay(canvas);
       // Should judge if scanner is destroyed after 'await', as in development React runs setup and cleanup one extra time before the actual setup in Strict Mode.
