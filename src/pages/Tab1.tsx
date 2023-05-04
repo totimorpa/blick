@@ -7,7 +7,6 @@ import {
   IonToolbar,
 } from "@ionic/react";
 import "./Tab1.css";
-import { BarcodeReader } from "dynamsoft-javascript-barcode";
 
 import "../dbr"; // import side effects. The license, engineResourcePath, so on.
 import VideoDecode from "../components/VideoDecode/VideoDecode";
